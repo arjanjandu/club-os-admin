@@ -1,48 +1,93 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0e1a;
-  --foreground: #f8fafc;
-  --accent: #3b82f6;
-  --accent-glow: rgba(59, 130, 246, 0.3);
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-hover: rgba(255, 255, 255, 0.08);
+  /* Branding from Tramp Mobile (Green & Magnolia Theme) */
+  /* Primary Green: hsl(152, 100%, 15%) -> #004c29 */
+  --color-tramp-green: #004c29; 
+  /* Magnolia Pink: hsl(338, 100%, 77%) -> #ff9cc4 */
+  --color-tramp-magnolia: #ff9cc4;
+  /* Magnolia Muted: hsl(338, 60%, 85%) */
+  --color-tramp-magnolia-muted: #f5c2d6;
+  
+  /* Backgrounds */
+  /* Light Mode Background: hsl(60, 20%, 98%) -> #fcfcf5 */
+  --color-tramp-bg-light: #fcfcf5;
+  /* Dark Mode Background: hsl(152, 40%, 6%) -> #09150e */
+  --color-tramp-bg-dark: #09150e;
+
+  /* Card Colors */
+  --color-tramp-card-light: #ffffff;
+  --color-tramp-card-dark: #0d1e14; /* approx */
+  
+  /* Mapping to Admin Theme (Dark Default) */
+  --background: var(--color-tramp-bg-dark);
+  --foreground: #fcfcf5;
+  
+  --color-brand-primary: var(--color-tramp-green);
+  --color-brand-accent: var(--color-tramp-magnolia);
+  --color-brand-accent-muted: var(--color-tramp-magnolia-muted);
+  
+  /* Fonts */
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+
+  /* Upstream Utils Variables */
+  --accent: #3b82f6; /* Fallback for badges not yet branded */
+  --glass-hover: rgba(13, 30, 20, 0.9);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  
+  --color-primary: var(--color-brand-primary);
+  --color-accent: var(--color-brand-accent);
+  --color-accent-muted: var(--color-brand-accent-muted);
+  
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   min-height: 100vh;
+  font-family: var(--font-body);
 }
 
-/* Glassmorphism */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+}
+
+/* Glassmorphism (Branded) */
 .glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  background: rgba(13, 30, 20, 0.7); /* Dark Green tint */
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(255, 156, 196, 0.2); /* Magnolia border subtle */
+  box-shadow: 0 4px 30px rgba(0, 76, 41, 0.4);
 }
+
 .glass-hover:hover {
-  background: var(--glass-hover);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(13, 30, 20, 0.9);
+  border-color: rgba(255, 156, 196, 0.4);
 }
 
-/* Stat card glow effects */
-.glow-blue { box-shadow: 0 0 40px rgba(59, 130, 246, 0.08), inset 0 1px 0 rgba(59, 130, 246, 0.1); }
-.glow-emerald { box-shadow: 0 0 40px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(16, 185, 129, 0.1); }
-.glow-purple { box-shadow: 0 0 40px rgba(139, 92, 246, 0.08), inset 0 1px 0 rgba(139, 92, 246, 0.1); }
-.glow-amber { box-shadow: 0 0 40px rgba(245, 158, 11, 0.08), inset 0 1px 0 rgba(245, 158, 11, 0.1); }
+/* Luxury Card */
+.luxury-card {
+  background: rgba(13, 30, 20, 0.6);
+  border: 1px solid rgba(255, 156, 196, 0.1);
+  box-shadow: 0 4px 20px -4px rgba(0, 76, 41, 0.2);
+  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
 
-/* Animations */
+.luxury-card:hover {
+  box-shadow: 0 16px 48px -12px rgba(0, 76, 41, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Upstream Animations & Badges (Preserved) */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
@@ -61,11 +106,34 @@ body {
 .badge-banned { @apply bg-red-500/15 text-red-400 border border-red-500/20; }
 .badge-pending { @apply bg-slate-500/15 text-slate-400 border border-slate-500/20; }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #334155; }
+/* Custom Scrollbar (Branded) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background); 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-brand-primary); 
+  border-radius: 4px;
+  border: 1px solid var(--color-brand-accent);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-accent); 
+}
+
+/* Utility Classes */
+.text-accent { color: var(--color-brand-accent); }
+.bg-accent { background-color: var(--color-brand-accent); }
+.border-accent { border-color: var(--color-brand-accent); }
+
+.text-gradient-magnolia {
+  background: linear-gradient(135deg, var(--color-brand-accent), #FFF, var(--color-brand-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
 
 /* Mobile responsive utilities */
 @media (max-width: 768px) {
