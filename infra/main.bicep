@@ -115,7 +115,7 @@ resource staticWebApp 'Microsoft.Web/staticSites@2022-03-01' = {
   }
   properties: {
     repositoryUrl: 'https://github.com/arjanjandu/club-os-admin'
-    branch: 'main'
+    branch: 'master'
     provider: 'GitHub'
   }
 }
