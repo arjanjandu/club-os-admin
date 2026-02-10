@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f172a; /* Slate 900 */
-  --foreground: #f8fafc; /* Slate 50 */
+  --background: #0a0e1a;
+  --foreground: #f8fafc;
+  --accent: #3b82f6;
+  --accent-glow: rgba(59, 130, 246, 0.3);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-hover: rgba(255, 255, 255, 0.08);
 }
 
 @theme inline {
@@ -13,35 +18,57 @@
 }
 
 body {
-  background: radial-gradient(circle at top left, #1e293b, #0f172a);
+  background: var(--background);
   color: var(--foreground);
   min-height: 100vh;
 }
 
-/* Glassmorphism Utilities */
+/* Glassmorphism */
 .glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+.glass-hover:hover {
+  background: var(--glass-hover);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
-.glass-hover:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.1);
+/* Stat card glow effects */
+.glow-blue { box-shadow: 0 0 40px rgba(59, 130, 246, 0.08), inset 0 1px 0 rgba(59, 130, 246, 0.1); }
+.glow-emerald { box-shadow: 0 0 40px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(16, 185, 129, 0.1); }
+.glow-purple { box-shadow: 0 0 40px rgba(139, 92, 246, 0.08), inset 0 1px 0 rgba(139, 92, 246, 0.1); }
+.glow-amber { box-shadow: 0 0 40px rgba(245, 158, 11, 0.08), inset 0 1px 0 rgba(245, 158, 11, 0.1); }
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+.animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+.delay-1 { animation-delay: 0.1s; opacity: 0; }
+.delay-2 { animation-delay: 0.2s; opacity: 0; }
+.delay-3 { animation-delay: 0.3s; opacity: 0; }
+.delay-4 { animation-delay: 0.4s; opacity: 0; }
+
+/* Status badges */
+.badge { @apply px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide; }
+.badge-active { @apply bg-emerald-500/15 text-emerald-400 border border-emerald-500/20; }
+.badge-waitlist { @apply bg-amber-500/15 text-amber-400 border border-amber-500/20; }
+.badge-frozen { @apply bg-blue-500/15 text-blue-400 border border-blue-500/20; }
+.badge-banned { @apply bg-red-500/15 text-red-400 border border-red-500/20; }
+.badge-pending { @apply bg-slate-500/15 text-slate-400 border border-slate-500/20; }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #0f172a; 
-}
-::-webkit-scrollbar-thumb {
-  background: #334155; 
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #475569; 
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+/* Mobile responsive utilities */
+@media (max-width: 768px) {
+  .sidebar-mobile-hidden { transform: translateX(-100%); }
+  .sidebar-mobile-visible { transform: translateX(0); }
 }
