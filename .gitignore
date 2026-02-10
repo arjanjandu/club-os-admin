@@ -8,3 +8,6 @@ coverage
 npm-debug.log
 yarn-error.log
 *.bicep.json
+*.zip
+backend/backend.zip
+*.log
