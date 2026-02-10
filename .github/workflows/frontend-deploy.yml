@@ -49,8 +49,11 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "frontend/out"
+          output_location: ""
           skip_app_build: true
           skip_api_build: true
+          is_static_export: true
+          production_branch: "master"
 
   close-pull-request:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
