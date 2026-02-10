@@ -1,18 +1,32 @@
+@description('The location for all resources.')
 param location string = resourceGroup().location
+
+@description('The name of the SQL Server.')
+param sqlServerName string = 'sql-clubos-${uniqueString(resourceGroup().id)}'
+
+@description('The name of the SQL Database.')
+param sqlDBName string = 'clubos-db'
+
+@description('The admin username for SQL Server.')
 param sqlAdminLogin string = 'clubosadmin'
+
+@description('The admin password for SQL Server.')
 @secure()
 param sqlAdminPassword string
 
-var tags = {
-  Project: 'ClubOS'
-  Environment: 'Production'
-}
+@description('The name of the App Service Plan.')
+param appServicePlanName string = 'plan-clubos-${uniqueString(resourceGroup().id)}'
 
-// --- SQL Server & Database ---
-resource sqlServer 'Microsoft.Sql/servers@2021-11-01' = {
-  name: 'sql-clubos-${uniqueString(resourceGroup().id)}'
+@description('The name of the Web App (Backend).')
+param webAppName string = 'app-clubos-api-${uniqueString(resourceGroup().id)}'
+
+@description('The name of the Static Web App (Frontend).')
+param staticWebAppName string = 'stapp-clubos-admin-${uniqueString(resourceGroup().id)}'
+
+// SQL Server
+resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
+  name: sqlServerName
   location: location
-  tags: tags
   properties: {
     administratorLogin: sqlAdminLogin
     administratorLoginPassword: sqlAdminPassword
@@ -20,23 +34,25 @@ resource sqlServer 'Microsoft.Sql/servers@2021-11-01' = {
   }
 }
 
-resource sqlDb 'Microsoft.Sql/servers/databases@2021-11-01' = {
+// SQL Database (Serverless)
+resource sqlDB 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
   parent: sqlServer
-  name: 'ClubOSDB'
+  name: sqlDBName
   location: location
-  tags: tags
   sku: {
-    name: 'GP_S_Gen5_1' // Serverless Gen5 1 vCore
+    name: 'GP_S_Gen5_1'
     tier: 'GeneralPurpose'
+    family: 'Gen5'
+    capacity: 1
   }
   properties: {
-    autoPauseDelay: 60 // Auto-pause after 1 hour
-    minCapacity: '0.5'
+    collation: 'SQL_Latin1_General_CP1_CI_AS'
+    maxSizeBytes: 2147483648 // 2GB
   }
 }
 
-// Allow Azure Services (App Service) to access SQL
-resource sqlFirewall 'Microsoft.Sql/servers/firewallRules@2021-11-01' = {
+// Allow Azure Services to access SQL
+resource allowAzureServices 'Microsoft.Sql/servers/firewallRules@2022-05-01-preview' = {
   parent: sqlServer
   name: 'AllowAzureServices'
   properties: {
@@ -45,65 +61,65 @@ resource sqlFirewall 'Microsoft.Sql/servers/firewallRules@2021-11-01' = {
   }
 }
 
-// --- App Service Plan (Backend) ---
-resource appServicePlan 'Microsoft.Web/serverfarms@2021-02-01' = {
-  name: 'plan-clubos-backend'
+// App Service Plan (Linux)
+resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
+  name: appServicePlanName
   location: location
-  tags: tags
   sku: {
     name: 'B1'
     tier: 'Basic'
   }
   kind: 'linux'
   properties: {
-    reserved: true // Required for Linux
+    reserved: true
   }
 }
 
-// --- App Service (Node.js API) ---
-resource webApp 'Microsoft.Web/sites@2021-02-01' = {
-  name: 'app-clubos-api-${uniqueString(resourceGroup().id)}'
+// Web App (Backend)
+resource webApp 'Microsoft.Web/sites@2022-03-01' = {
+  name: webAppName
   location: location
-  tags: tags
-  kind: 'app,linux'
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
       linuxFxVersion: 'NODE|20-lts'
       appSettings: [
         {
-          name: 'SQL_CONNECTION_STRING'
-          value: 'Server=tcp:${sqlServer.name}.database.windows.net,1433;Initial Catalog=${sqlDb.name};Persist Security Info=False;User ID=${sqlAdminLogin};Password=${sqlAdminPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+          name: 'DB_SERVER'
+          value: sqlServer.properties.fullyQualifiedDomainName
         }
         {
-          name: 'WEBSITE_RUN_FROM_PACKAGE'
-          value: '1' // Zip deploy
+          name: 'DB_USER'
+          value: sqlAdminLogin
         }
         {
-          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
-          value: 'true'
+          name: 'DB_PASSWORD'
+          value: sqlAdminPassword
+        }
+        {
+          name: 'DB_NAME'
+          value: sqlDBName
         }
       ]
     }
-    httpsOnly: true
   }
 }
 
-// --- Static Web App (Frontend) ---
-resource staticWebApp 'Microsoft.Web/staticSites@2021-02-01' = {
-  name: 'stapp-clubos-admin-${uniqueString(resourceGroup().id)}'
-  location: 'westeurope' // Static Web Apps global/limited regions
-  tags: tags
+// Static Web App (Frontend)
+resource staticWebApp 'Microsoft.Web/staticSites@2022-03-01' = {
+  name: staticWebAppName
+  location: 'westeurope' // Static Web Apps have limited regions
   sku: {
-    name: 'Free'
-    tier: 'Free'
+    name: 'Standard'
+    tier: 'Standard'
   }
-  properties: {}
+  properties: {
+    repositoryUrl: 'https://github.com/arjanjandu/club-os-admin'
+    branch: 'main'
+    provider: 'GitHub'
+  }
 }
 
-// --- Outputs ---
-output sqlServerName string = sqlServer.name
-output sqlDbName string = sqlDb.name
-output webAppHostName string = webApp.properties.defaultHostName
-output staticWebAppDefaultHostName string = staticWebApp.properties.defaultHostname
-output staticWebAppName string = staticWebApp.name
+output backendUrl string = 'https://${webApp.properties.defaultHostName}'
+output frontendUrl string = 'https://${staticWebApp.properties.defaultHostname}'
+output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
